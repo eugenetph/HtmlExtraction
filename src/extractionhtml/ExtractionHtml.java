@@ -5,9 +5,15 @@
  */
 package extractionhtml;
 
+import Model.CveObject;
+
 import java.io.File;
 import java.io.IOException;
+
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -30,10 +36,31 @@ public class ExtractionHtml {
     private static String projectName;
     
     /**
-     * Used when compiling file scanning regex patterns.
+     * ArrayList to store multiple cveObject
      */
+    private static ArrayList<CveObject> cveObject;
     
+    /**
+     * Constant variable for project name extraction
+     */
     private static final String PROJECTHEADER = "Project";
+    
+    /**
+     * Use regex patterns when extracting cve number.
+     */
+    private static final Pattern CVENUMBER = Pattern.compile("(CVE-\\d{4}-\\d{4}) "); 
+    
+    /**
+     * Use regex patterns when extracting cvss score number.
+     */
+    private static final Pattern SCORE = Pattern.compile(" (\\d.\\d) "); 
+    
+    /**
+     * Use regex patterns when extracting severity level number.
+     */
+    private static final Pattern SEVERITY = Pattern.compile(" (Low|Medium|High) ");
+    
+    
     
     /**
      * @param args the command line arguments
@@ -43,9 +70,15 @@ public class ExtractionHtml {
         Document d = DOM(OWN_URL_PATH);
         projectName = projectName(d, PROJECTHEADER);
         ArrayList<String> s = scanInformation(d);
+        cveObject = cveDetails(d);
+        
         
         System.out.println("Project: " + projectName);
         System.out.println("Scan Information: " + s);
+        System.out.println("CveNum: " + cveObject.get(0).getCveNumber());
+        System.out.println("CveSeverity: " + cveObject.get(0).getCveSeverityLevel());
+        System.out.println("CveScore: " + cveObject.get(0).getCvssScore());
+        System.out.println("CveDesc: " + cveObject.get(0).getCveDescription());
     }
     
     /**
@@ -64,7 +97,7 @@ public class ExtractionHtml {
      * @param fullPart the full string
      * @param projectHeader the project header to be search in a full text
      * @param separator the separator in the full string
-     * @return 
+     * @return specific string from a full string
      */
     public static String Trimmer(String fullPart, String projectHeader, String separator) {
         String partHeader = fullPart;
@@ -78,14 +111,14 @@ public class ExtractionHtml {
     }
     
     /**
-     * Extract the project name
+     * Method to extract the project name
      * @param d the document
      * @param projectHeader the project header to be search in a full text
-     * @return 
+     * @return the project name
      */
     public static String projectName(Document d, String projectHeader){
         String projName = "";
-        String extractedData = "";
+        String extractedData;
         
         Elements elements = d.select("div.wrapper");
         for(Element element: elements){
@@ -96,13 +129,13 @@ public class ExtractionHtml {
     }
     
     /**
-     * Extract the scan information
+     * Method to extract the scan information
      * @param d the DOM document
-     * @return 
+     * @return Array of scan information
      */
     public static ArrayList<String> scanInformation(Document d){
-        ArrayList<String> extractedArrayData = new ArrayList<String>();
-        String extractedData = "";
+        ArrayList<String> extractedArrayData = new ArrayList<>();
+        String extractedData;
         Elements elements = d.select("div.wrapper");
         
         for(int i = 0; i<6; i++){
@@ -111,6 +144,54 @@ public class ExtractionHtml {
 //            extractedArrayData.add(Trimmer(extractedData, "", ";"));
         }
         return extractedArrayData;
+    }
+    
+    /**
+     * Method to extracting desired each cve details into an CveObject java class
+     * @param d the DOM document
+     * @return ArrayList of CveObject
+     */
+    public static ArrayList<CveObject> cveDetails(Document d) {
+        ArrayList<CveObject> cve = new ArrayList<>();
+        Matcher match;
+        String cveNumber;
+        String severity;
+        String cvssScore;
+        String description;
+        int counter = 0;
+
+        Elements elements = d.select("div#content5 p");
+
+        for (int i = 1; i < elements.size(); i += 6) {
+            cve.add(new CveObject());
+
+            cveNumber = elements.eq(i - 1).text();
+            match = CVENUMBER.matcher(cveNumber);
+            if (match.find()) {
+                String number = match.group(1);
+                cve.get(counter).setCveNumber(number);
+            }
+
+            severity = elements.eq(i).text();
+            match = SEVERITY.matcher(severity);
+            if (match.find()) {
+                String sev = match.group(1);
+                cve.get(counter).setCveSeverityLevel(sev);
+            }
+
+            cvssScore = elements.eq(i).text();
+            match = SCORE.matcher(cvssScore);
+            if (match.find()) {
+                double score = Double.parseDouble(match.group(1));
+                cve.get(counter).setCvssScore(score);
+            }
+
+            description = elements.eq(i + 1).text();
+            cve.get(counter).setCveDescription(description);
+            
+            counter++;
+        }
+        return cve;
     }
     
     /**
