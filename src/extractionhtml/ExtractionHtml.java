@@ -29,7 +29,7 @@ public class ExtractionHtml {
     /**
      * Constant path for html file
      */
-    private static final String OWN_URL_PATH = "C:\\Users\\Eugene Tan\\Desktop\\Dependency Scanner Result\\free-python-games-master\\free-python-games-master\\dependency-check-report.html";
+    private static final String OWN_URL_PATH = "C:\\Users\\Eugene\\Desktop\\Dependency Scanner Result\\free-python-games-master\\free-python-games-master\\dependency-check-report.html";
 
     /**
      * Project name variable
@@ -66,6 +66,7 @@ public class ExtractionHtml {
      */
     private static final Pattern SEVERITY = Pattern.compile(" (Low|Medium|High) ");
     
+//    private static final Pattern filePath = Pattern.compile("(\\(C|D|G):(\\.+)+\\__init__.py)");
     
     
     /**
@@ -92,6 +93,9 @@ public class ExtractionHtml {
         System.out.println("dependencyObject: " + dependencyObject.get(0).getCveCount());
         System.out.println("dependencyObject: " + dependencyObject.get(0).getCpeConfidence());
         System.out.println("dependencyObject: " + dependencyObject.get(0).getEvidenceCount());
+        projectDescription(d);
+        filePath(d);
+        hashString(d);
     }
     
     /**
@@ -220,19 +224,40 @@ public class ExtractionHtml {
   
         Elements elements = d.select("table#summaryTable tbody tr.vulnerable td");
         
-        for (int i = 0; i < elements.size(); i++) {
-            dependencyName = elements.select("a").get(0).text();
-            cpe = elements.select("a").get(1).text();
-            coordinate = elements.get(2).text();
-            highestSeverity = elements.get(3).text();
-            cveCount = Integer.parseInt(elements.get(4).text());
-            cpeConfidence = elements.get(5).text();
-            evidenceCount = Integer.parseInt(elements.get(6).text());
+        for (int i = 0; i < elements.size(); i+=7) {
+            dependencyName = elements.select("a").get(i).text();
+            cpe = elements.select("a").get(i+1).text();
+            coordinate = elements.get(i+2).text();
+            highestSeverity = elements.get(i+3).text();
+            cveCount = Integer.parseInt(elements.get(i+4).text());
+            cpeConfidence = elements.get(i+5).text();
+            evidenceCount = Integer.parseInt(elements.get(i+6).text());
       
             dependency.add(new DependencyObject(dependencyName, cpe, coordinate, 
                     highestSeverity, cveCount, cpeConfidence, evidenceCount));
         }
         return dependency;
+    }
+    
+    public static String projectDescription(Document d){
+        Elements elements = d.select("div.subsectioncontent p");
+        return elements.get(1).text();
+    } 
+    
+    public static String filePath(Document d){
+        Elements elements = d.select("div.subsectioncontent");
+        String filePath = Trimmer(elements.get(0).text(), "File Path", "M");
+        System.out.println("aaa: " + elements.get(0).text());
+        System.out.println("ddd: " + filePath);
+        return filePath;
+    } 
+//     DependencyObject object
+    public static String hashString(Document d){
+        
+        Elements elements = d.select("div.subsectioncontent");
+        String md5 = Trimmer(elements.get(0).text(), "MD5", "py");
+        System.out.println("ccc: " + md5);
+        return null;
     }
     
     /**

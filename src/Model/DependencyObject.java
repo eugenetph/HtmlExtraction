@@ -47,6 +47,26 @@ public class DependencyObject {
     private int evidenceCount;
     
     /**
+     * The description of the dependency project
+     */
+    private String description;
+    
+    /**
+     * The file path of the dependency project
+     */
+    private String filePath;
+    
+    /**
+     * The MD5 string of the dependency project
+     */
+    private String md5;
+    
+    /**
+     * The SHA1 strong of the dependency project
+     */
+    private String sha1;
+    
+    /**
      * The dependency constructor
      */
     public DependencyObject (String dependencyName, String cpe, String coordinates, 
@@ -107,5 +127,33 @@ public class DependencyObject {
      */
     public int getEvidenceCount() {
         return evidenceCount;
+    }
+
+    /**
+     * @return the description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * @return the filePath
+     */
+    public String getFilePath() {
+        return filePath;
+    }
+
+    /**
+     * @return the md5
+     */
+    public String getMd5() {
+        return md5;
+    }
+
+    /**
+     * @return the sha1
+     */
+    public String getSha1() {
+        return sha1;
     }
 }
