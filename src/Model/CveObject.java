@@ -14,84 +14,60 @@ import java.util.ArrayList;
 public class CveObject {
 
     /**
-     * store String array of CVE number
+     * store String of CVE number
      */
-    private ArrayList<String> cveNumber = new ArrayList<>();
+    private String cveNumber;
     
     /**
-     * store String array of CVE description
+     * store String of CVE description
      */
-    private ArrayList<String> cveDescription = new ArrayList<>();;
+    private String cveDescription;
     
     /**
-     * store Integer array of CVE severity level
+     * store Integer of CVE severity level
      */
-    private ArrayList<String> cveSeverityLevel = new ArrayList<>();; 
+    private String cveSeverityLevel; 
     
     /**
-     * store Double array of CVSS score
+     * store Double of CVSS score
      */
-    private ArrayList<Double> cvssScore = new ArrayList<>();;
+    private double cvssScore;
     
     /**
      * empty constructor
      */
-    public CveObject(){}
+    public CveObject(String cveNumber, double cvssScore, String cveSeverityLevel, String cveDescription){
+        this.cveNumber = cveNumber;
+        this.cveDescription = cveDescription;
+        this.cveSeverityLevel = cveSeverityLevel;
+        this.cvssScore = cvssScore;
+    }
 
     /**
      * @return the cveNumber
      */
-    public ArrayList<String> getCveNumber() {
+    public String getCveNumber() {
         return cveNumber;
-    }
-
-    /**
-     * @param cveNumber the cveNumber to set
-     */
-    public void setCveNumber(String cveNumber) {
-        this.cveNumber.add(cveNumber);
     }
 
     /**
      * @return the cveDescription
      */
-    public ArrayList<String> getCveDescription() {
+    public String getCveDescription() {
         return cveDescription;
-    }
-
-    /**
-     * @param cveDescription the cveDescription to set
-     */
-    public void setCveDescription(String cveDescription) {
-        this.cveDescription.add(cveDescription);
     }
 
     /**
      * @return the cveSeverityLevel
      */
-    public ArrayList<String> getCveSeverityLevel() {
+    public String getCveSeverityLevel() {
         return cveSeverityLevel;
-    }
-
-    /**
-     * @param cveSeverityLevel the cveSeverityLevel to set
-     */
-    public void setCveSeverityLevel(String cveSeverityLevel) {
-        this.cveSeverityLevel.add(cveSeverityLevel);
     }
 
     /**
      * @return the cvssScore
      */
-    public ArrayList<Double> getCvssScore() {
+    public double getCvssScore() {
         return cvssScore;
     }
-
-    /**
-     * @param cvssScore the cvssScore to set
-     */
-    public void setCvssScore(Double cvssScore) {
-        this.cvssScore.add(cvssScore);
-    }
-    
 }

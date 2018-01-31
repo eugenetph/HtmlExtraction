@@ -6,6 +6,7 @@
 package extractionhtml;
 
 import Model.CveObject;
+import Model.DependencyObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,7 +29,7 @@ public class ExtractionHtml {
     /**
      * Constant path for html file
      */
-    private static final String OWN_URL_PATH = "C:\\Users\\Eugene\\Desktop\\Dependency Scanner Result\\free-python-games-master\\free-python-games-master\\dependency-check-report.html";
+    private static final String OWN_URL_PATH = "C:\\Users\\Eugene Tan\\Desktop\\Dependency Scanner Result\\free-python-games-master\\free-python-games-master\\dependency-check-report.html";
 
     /**
      * Project name variable
@@ -39,6 +40,11 @@ public class ExtractionHtml {
      * ArrayList to store multiple cveObject
      */
     private static ArrayList<CveObject> cveObject;
+    
+    /**
+     * ArrayList to store multiple dependencyObject
+     */
+    private static ArrayList<DependencyObject> dependencyObject;
     
     /**
      * Constant variable for project name extraction
@@ -71,7 +77,7 @@ public class ExtractionHtml {
         projectName = projectName(d, PROJECTHEADER);
         ArrayList<String> s = scanInformation(d);
         cveObject = cveDetails(d);
-        
+        dependencyObject = dependencyDetail(d);
         
         System.out.println("Project: " + projectName);
         System.out.println("Scan Information: " + s);
@@ -79,6 +85,13 @@ public class ExtractionHtml {
         System.out.println("CveSeverity: " + cveObject.get(0).getCveSeverityLevel());
         System.out.println("CveScore: " + cveObject.get(0).getCvssScore());
         System.out.println("CveDesc: " + cveObject.get(0).getCveDescription());
+        System.out.println("dependencyObject: " + dependencyObject.get(0).getDependencyName());
+        System.out.println("dependencyObject: " + dependencyObject.get(0).getCpe());
+        System.out.println("dependencyObject: " + dependencyObject.get(0).getCoordinates());
+        System.out.println("dependencyObject: " + dependencyObject.get(0).getSeverityLevel());
+        System.out.println("dependencyObject: " + dependencyObject.get(0).getCveCount());
+        System.out.println("dependencyObject: " + dependencyObject.get(0).getCpeConfidence());
+        System.out.println("dependencyObject: " + dependencyObject.get(0).getEvidenceCount());
     }
     
     /**
@@ -158,40 +171,68 @@ public class ExtractionHtml {
         String severity;
         String cvssScore;
         String description;
-        int counter = 0;
+        String number ="";
+        String sev = "";
+        double score = 0;
 
         Elements elements = d.select("div#content5 p");
 
         for (int i = 1; i < elements.size(); i += 6) {
-            cve.add(new CveObject());
-
             cveNumber = elements.eq(i - 1).text();
             match = CVENUMBER.matcher(cveNumber);
             if (match.find()) {
-                String number = match.group(1);
-                cve.get(counter).setCveNumber(number);
+                number = match.group(1);
             }
 
             severity = elements.eq(i).text();
             match = SEVERITY.matcher(severity);
             if (match.find()) {
-                String sev = match.group(1);
-                cve.get(counter).setCveSeverityLevel(sev);
+                sev = match.group(1);
             }
 
             cvssScore = elements.eq(i).text();
             match = SCORE.matcher(cvssScore);
             if (match.find()) {
-                double score = Double.parseDouble(match.group(1));
-                cve.get(counter).setCvssScore(score);
+                score = Double.parseDouble(match.group(1));
             }
-
-            description = elements.eq(i + 1).text();
-            cve.get(counter).setCveDescription(description);
             
-            counter++;
+            description = elements.eq(i + 1).text();
+            
+            cve.add(new CveObject(number, score, sev, description));
         }
         return cve;
+    }
+    
+    /**
+     * Method to extracting of dependency object into DependencyObject java class
+     * @param d the DOM document
+     * @return 
+     */
+    public static ArrayList<DependencyObject> dependencyDetail(Document d){
+        ArrayList<DependencyObject> dependency = new ArrayList<>();;
+        String dependencyName;
+        String cpe;
+        String coordinate;
+        String highestSeverity;
+        String cpeConfidence;
+        int cveCount;
+        int evidenceCount;
+  
+        Elements elements = d.select("table#summaryTable tbody tr.vulnerable td");
+        
+        for (int i = 0; i < elements.size(); i++) {
+            dependencyName = elements.select("a").get(0).text();
+            cpe = elements.select("a").get(1).text();
+            coordinate = elements.get(2).text();
+            highestSeverity = elements.get(3).text();
+            cveCount = Integer.parseInt(elements.get(4).text());
+            cpeConfidence = elements.get(5).text();
+            evidenceCount = Integer.parseInt(elements.get(6).text());
+      
+            dependency.add(new DependencyObject(dependencyName, cpe, coordinate, 
+                    highestSeverity, cveCount, cpeConfidence, evidenceCount));
+        }
+        return dependency;
     }
     
     /**
