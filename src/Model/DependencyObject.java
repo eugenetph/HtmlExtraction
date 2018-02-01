@@ -69,8 +69,8 @@ public class DependencyObject {
     /**
      * The dependency constructor
      */
-    public DependencyObject (String dependencyName, String cpe, String coordinates, 
-            String severityLevel, int cveCount, String cpeConfidence, int evidenceCount) {
+    public DependencyObject (String dependencyName, String cpe, String coordinates, String severityLevel, 
+            int cveCount, String cpeConfidence, int evidenceCount, String description, String filePath) {
         this.dependencyName = dependencyName;
         this.cpe = cpe;
         this.coordinates = coordinates;
@@ -78,6 +78,8 @@ public class DependencyObject {
         this.cveCount = cveCount;
         this.cpeConfidence = cpeConfidence;
         this.evidenceCount = evidenceCount;
+        this.description = description;
+        this.filePath = filePath;
     }
 
     /**
@@ -155,5 +157,19 @@ public class DependencyObject {
      */
     public String getSha1() {
         return sha1;
+    }
+
+    /**
+     * @param md5 the md5 to set
+     */
+    public void setMd5(String md5) {
+        this.md5 = md5;
+    }
+
+    /**
+     * @param sha1 the sha1 to set
+     */
+    public void setSha1(String sha1) {
+        this.sha1 = sha1;
     }
 }

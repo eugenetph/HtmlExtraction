@@ -29,7 +29,7 @@ public class ExtractionHtml {
     /**
      * Constant path for html file
      */
-    private static final String OWN_URL_PATH = "C:\\Users\\Eugene\\Desktop\\Dependency Scanner Result\\free-python-games-master\\free-python-games-master\\dependency-check-report.html";
+    private static final String OWN_URL_PATH = "C:\\Users\\Eugene Tan\\Desktop\\Dependency Scanner Result\\free-python-games-master\\free-python-games-master\\dependency-check-report.html";
 
     /**
      * Project name variable
@@ -66,8 +66,20 @@ public class ExtractionHtml {
      */
     private static final Pattern SEVERITY = Pattern.compile(" (Low|Medium|High) ");
     
-//    private static final Pattern filePath = Pattern.compile("(\\(C|D|G):(\\.+)+\\__init__.py)");
+    /**
+     * Use regex patterns when extracting file path
+     */
+    private static final Pattern FILE_PATH = Pattern.compile("([a-zA-Z]:(\\\\([a-zA-Z0-9_-]|\\s)+)+([a-zA-Z.]+))");
     
+    /**
+     * Use regex patterns when extract MD5 string
+     */
+    private static final Pattern MD5 = Pattern.compile("(MD5:\\s[a-z0-9]+)");
+    
+    /**
+     * Use regex patterns when extract SHA1 string
+     */
+    private static final Pattern SHA1 = Pattern.compile("(SHA1:\\s[a-z0-9]+)");
     
     /**
      * @param args the command line arguments
@@ -93,9 +105,11 @@ public class ExtractionHtml {
         System.out.println("dependencyObject: " + dependencyObject.get(0).getCveCount());
         System.out.println("dependencyObject: " + dependencyObject.get(0).getCpeConfidence());
         System.out.println("dependencyObject: " + dependencyObject.get(0).getEvidenceCount());
-        projectDescription(d);
-        filePath(d);
-        hashString(d);
+        System.out.println("dependencyObject: " + dependencyObject.get(0).getDescription());
+        System.out.println("dependencyObject: " + dependencyObject.get(0).getFilePath());
+        System.out.println("dependencyObject: " + dependencyObject.get(0).getMd5());
+        System.out.println("dependencyObject: " + dependencyObject.get(0).getSha1());
+//        testing();
     }
     
     /**
@@ -210,7 +224,7 @@ public class ExtractionHtml {
     /**
      * Method to extracting of dependency object into DependencyObject java class
      * @param d the DOM document
-     * @return 
+     * @return the Dependency Object
      */
     public static ArrayList<DependencyObject> dependencyDetail(Document d){
         ArrayList<DependencyObject> dependency = new ArrayList<>();;
@@ -219,8 +233,12 @@ public class ExtractionHtml {
         String coordinate;
         String highestSeverity;
         String cpeConfidence;
+        String pathName;
+        String description;
+        
         int cveCount;
         int evidenceCount;
+        int counter = 0;
   
         Elements elements = d.select("table#summaryTable tbody tr.vulnerable td");
         
@@ -232,32 +250,72 @@ public class ExtractionHtml {
             cveCount = Integer.parseInt(elements.get(i+4).text());
             cpeConfidence = elements.get(i+5).text();
             evidenceCount = Integer.parseInt(elements.get(i+6).text());
+            pathName = filePath(d);
+            description = projectDescription(d);
       
-            dependency.add(new DependencyObject(dependencyName, cpe, coordinate, 
-                    highestSeverity, cveCount, cpeConfidence, evidenceCount));
+            dependency.add(new DependencyObject(dependencyName, cpe, coordinate, highestSeverity, 
+                    cveCount, cpeConfidence, evidenceCount, description, pathName));
+            hashString(d, dependency.get(counter));
+            counter++;
         }
         return dependency;
     }
     
+    /**
+     * Method to extract project description from OWASP report
+     * @param d
+     * @return the project description
+     */
     public static String projectDescription(Document d){
         Elements elements = d.select("div.subsectioncontent p");
         return elements.get(1).text();
     } 
     
+    /**
+     * Method to extract project file path from OWASP report
+     * @param d the DOM document
+     * @return the project file path
+     */
     public static String filePath(Document d){
         Elements elements = d.select("div.subsectioncontent");
-        String filePath = Trimmer(elements.get(0).text(), "File Path", "M");
-        System.out.println("aaa: " + elements.get(0).text());
-        System.out.println("ddd: " + filePath);
-        return filePath;
+        String path;
+        String extractedData;
+        
+        extractedData = elements.get(0).text();
+        Matcher match = FILE_PATH.matcher(extractedData);
+        if (match.find()) {
+            path = match.group(1);
+        }
+        else{
+            path = "";
+        }
+        return path;
     } 
-//     DependencyObject object
-    public static String hashString(Document d){
+
+    /**
+     * Extract from OWASP report and set md5 and sha1 string into class DependencyObject object
+     * @param d the DOM document
+     * @param object the specific DependencyObject object
+     */
+    public static void hashString(Document d, DependencyObject object){
         
         Elements elements = d.select("div.subsectioncontent");
-        String md5 = Trimmer(elements.get(0).text(), "MD5", "py");
-        System.out.println("ccc: " + md5);
-        return null;
+        String md5;
+        String sha1;
+        String extractedData;
+        Matcher match;
+        
+        extractedData = elements.get(0).text();
+        match = MD5.matcher(extractedData);
+        if (match.find()) {
+            md5 = match.group(1);
+            object.setMd5(md5);
+        }
+        match = SHA1.matcher(extractedData);
+        if (match.find()){
+            sha1 = match.group(1);
+            object.setSha1(sha1);
+        }
     }
     
     /**
@@ -303,5 +361,22 @@ public class ExtractionHtml {
         String desc = element2.select("p").text();
         System.out.println(desc);
     }
+    
+//    public static void testing(){
+//        String s = "File Path: C:\\Users\\Eugene Tan\\Desktop\\Dependency Scanner Result\\free-python-games-master\\free-python-games-master\\free-python-games-master\\tests\\__init__.py MD5: d41d8cd98f00b204e9800998ecf8427e SHA1: da39a3ee5e6b4b0d3255bfef95601890afd80709 Evidence Type Source Name Value Confidence Product __init__.py PackageName tests Highest Identifiers None\n" +
+//"ccc: d41d8cd98f00b204e9800998ecf8427e SHA1: da39a3ee5e6b4b0d3255bfef95601890afd80709 Evidence";
+//        Pattern test = Pattern.compile("(MD5:\\s[a-z0-9]+)");
+//        String x;
+//
+//        Matcher match = test.matcher(s);
+//        if (match.find()) {
+//            x = match.group(1);
+//            System.out.println("The String is: " + x);
+//        }
+//        else{
+//            System.out.println("None!");
+//        }
+//
+//    }
     
 }
